@@ -89,7 +89,7 @@ func MakeInterfaceFromM3U(byteStream []byte) (allChannels []interface{}, err err
 
 					}
 
-					channelName = strings.TrimRight(channelName, " ")
+					channelName = strings.TrimSpace(channelName)
 
 					// Kanäle ohne Namen werden augelassen
 					if len(channelName) == 0 {

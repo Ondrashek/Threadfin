@@ -1,7 +1,7 @@
 // Copyright 2019 marmei. All rights reserved.
 // Use of this source code is governed by a MIT license that can be found in the
 // LICENSE file.
-// GitHub: https://github.com/Threadfin/Threadfin
+// GitHub: https://github.com/Ondrashek/Threadfin
 
 package main
 
@@ -27,7 +27,7 @@ type GitHubStruct struct {
 
 // GitHub : GitHub Account
 // If you want to fork this project, enter your Github account here. This prevents a newer version of Threadfin from updating your version.
-var GitHub = GitHubStruct{Branch: "Main", User: "Threadfin", Repo: "Threadfin", Update: true}
+var GitHub = GitHubStruct{Branch: "Main", User: "Ondrashek", Repo: "Threadfin", Update: false}
 
 /*
 	Branch: GitHub Branch

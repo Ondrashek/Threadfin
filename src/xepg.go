@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
@@ -290,8 +291,8 @@ func createXEPGMapping() {
 
 		var dummyChannel = make(map[string]string)
 		if i == "PPV" {
-			dummyChannel["display-name"] = "PPV Event"
-			dummyChannel["id"] = "PPV"
+			dummyChannel["display-name"] = i
+			dummyChannel["id"] = i
 		} else {
 			dummyChannel["display-name"] = i + " Minutes"
 			dummyChannel["id"] = i + "_Minutes"
@@ -314,6 +315,7 @@ func createXEPGDatabase() (err error) {
 	Data.Cache.Streams.Active = make([]string, 0, System.UnfilteredChannelLimit)
 	Data.XEPG.Channels = make(map[string]interface{}, System.UnfilteredChannelLimit)
 	Settings = SettingsStruct{}
+
 	Data.XEPG.Channels, err = loadJSONFileToMap(System.File.XEPG)
 	if err != nil {
 		ShowError(err, 1004)
@@ -392,9 +394,6 @@ func createXEPGDatabase() (err error) {
 		if err != nil {
 			return
 		}
-		if channel.TvgName == "" {
-			channel.TvgName = channel.Name
-		}
 		channelHash := generateHashForChannel(channel.FileM3UID, channel.GroupTitle, channel.TvgID, channel.TvgName, channel.UUIDKey, channel.UUIDValue)
 		xepgChannelsValuesMap[channelHash] = channel
 	}
@@ -412,9 +411,7 @@ func createXEPGDatabase() (err error) {
 			return
 		}
 
-		if m3uChannel.TvgName == "" {
-			m3uChannel.TvgName = m3uChannel.Name
-		}
+		// log.Println("M3U: ", m3uChannel)
 
 		Data.Cache.Streams.Active = append(Data.Cache.Streams.Active, m3uChannel.Name+m3uChannel.FileM3UID)
 
@@ -430,6 +427,7 @@ func createXEPGDatabase() (err error) {
 
 			// XEPG Datenbank durchlaufen um nach dem Kanal zu suchen.  Run through the XEPG database to search for the channel (full scan)
 			for _, dxc := range xepgChannelsValuesMap {
+
 				if m3uChannel.FileM3UID == dxc.FileM3UID {
 
 					dxc.FileM3UID = m3uChannel.FileM3UID
@@ -438,7 +436,7 @@ func createXEPGDatabase() (err error) {
 					// Vergleichen des Streams anhand einer UUID in der M3U mit dem Kanal in der Databank.  Compare the stream using a UUID in the M3U with the channel in the database
 					if len(dxc.UUIDValue) > 0 && len(m3uChannel.UUIDValue) > 0 {
 
-						if dxc.UUIDValue == m3uChannel.UUIDValue && dxc.UUIDKey == m3uChannel.UUIDKey && dxc.TvgID == m3uChannel.TvgID {
+						if dxc.UUIDValue == m3uChannel.UUIDValue && dxc.UUIDKey == m3uChannel.UUIDKey {
 
 							channelExists = true
 							channelHasUUID = true
@@ -470,10 +468,6 @@ func createXEPGDatabase() (err error) {
 			err = json.Unmarshal([]byte(mapToJSON(Data.XEPG.Channels[currentXEPGID])), &xepgChannel)
 			if err != nil {
 				return
-			}
-
-			if xepgChannel.TvgName == "" {
-				xepgChannel.TvgName = xepgChannel.Name
 			}
 
 			// Streaming URL aktualisieren
@@ -569,10 +563,6 @@ func mapping() (err error) {
 			return
 		}
 
-		if xepgChannel.TvgName == "" {
-			xepgChannel.TvgName = xepgChannel.Name
-		}
-
 		if (xepgChannel.XBackupChannel1 != "" && xepgChannel.XBackupChannel1 != "-") || (xepgChannel.XBackupChannel2 != "" && xepgChannel.XBackupChannel2 != "-") || (xepgChannel.XBackupChannel3 != "" && xepgChannel.XBackupChannel3 != "-") {
 			for _, stream := range Data.Streams.Active {
 				var m3uChannel M3UChannelStructXEPG
@@ -580,10 +570,6 @@ func mapping() (err error) {
 				err = json.Unmarshal([]byte(mapToJSON(stream)), &m3uChannel)
 				if err != nil {
 					return
-				}
-
-				if m3uChannel.TvgName == "" {
-					m3uChannel.TvgName = m3uChannel.Name
 				}
 
 				backup_channel1 := strings.Trim(xepgChannel.XBackupChannel1, " ")
@@ -618,6 +604,7 @@ func mapping() (err error) {
 				Data.XEPG.Channels[xepg] = xepgChannel
 
 				for file, xmltvChannels := range Data.XMLTV.Mapping {
+
 					if channel, ok := xmltvChannels.(map[string]interface{})[tvgID]; ok {
 
 						filters := []FilterStruct{}
@@ -794,9 +781,6 @@ func createXMLTVFile() (err error) {
 		var xepgChannel XEPGChannelStruct
 		err := json.Unmarshal([]byte(mapToJSON(dxc)), &xepgChannel)
 		if err == nil {
-			if xepgChannel.TvgName == "" {
-				xepgChannel.TvgName = xepgChannel.Name
-			}
 			if xepgChannel.XActive && !xepgChannel.XHideChannel {
 				if (Settings.XepgReplaceChannelTitle && xepgChannel.XMapping == "PPV") || xepgChannel.TvgName != "" {
 					// Kanäle
@@ -847,6 +831,7 @@ func getProgramData(xepgChannel XEPGChannelStruct) (xepgXML XMLTV, err error) {
 	}
 
 	for _, xmltvProgram := range xmltv.Program {
+
 		if xmltvProgram.Channel == channelID {
 			var program = &Program{}
 
@@ -948,18 +933,18 @@ func createLiveProgram(xepgChannel XEPGChannelStruct, channelId string) *Program
 	} else {
 		name = xepgChannel.XName
 	}
-
 	if Settings.XepgReplaceChannelTitle && xepgChannel.XMapping == "PPV" {
 		title := []*Title{}
-		title_parsed := fmt.Sprintf("%s %s", name, xepgChannel.XPpvExtra)
-		t := &Title{Lang: "en", Value: title_parsed}
-		title = append(title, t)
-		program.Title = title
+		// Strip out channel name
+		var re = regexp.MustCompile(`(?m)(?i)PPV|EVENT[ ]?-?\d+:?`)
+		ppv_matches := re.FindAllString(name, -1)
+		if len(ppv_matches) > 0 {
+			title_parsed := fmt.Sprintf("%s %s", strings.Replace(name, ppv_matches[0], "", -1), xepgChannel.XPpvExtra)
+			t := &Title{Value: strings.TrimSpace(title_parsed)}
+			title = append(title, t)
 
-		desc := []*Desc{}
-		d := &Desc{Lang: "en", Value: title_parsed}
-		desc = append(desc, d)
-		program.Desc = desc
+			program.Title = title
+		}
 	}
 	return program
 }
@@ -982,15 +967,11 @@ func createDummyProgram(xepgChannel XEPGChannelStruct) (dummyXMLTV XMLTV) {
 
 	showInfo("Create Dummy Guide:" + "Time offset" + offset + " - " + xepgChannel.XName)
 
-	var dummyLength int
-	var err error
 	var dl = strings.Split(xepgChannel.XMapping, "_")
-	if dl[0] != "" {
-		dummyLength, err = strconv.Atoi(dl[0])
-		if err != nil {
-			ShowError(err, 000)
-			return
-		}
+	dummyLength, err := strconv.Atoi(dl[0])
+	if err != nil {
+		ShowError(err, 000)
+		return
 	}
 
 	for d := 0; d < 4; d++ {
@@ -1204,10 +1185,6 @@ func cleanupXEPG() {
 		err := json.Unmarshal([]byte(mapToJSON(dxc)), &xepgChannel)
 		if err == nil {
 
-			if xepgChannel.TvgName == "" {
-				xepgChannel.TvgName = xepgChannel.Name
-			}
-
 			if indexOfString(xepgChannel.Name+xepgChannel.FileM3UID, Data.Cache.Streams.Active) == -1 {
 				delete(Data.XEPG.Channels, id)
 			} else {
@@ -1252,10 +1229,6 @@ func getStreamByChannelID(channelID string) (playlistID, streamURL string, err e
 		fmt.Println(xepgChannel.XChannelID)
 
 		if err == nil {
-
-			if xepgChannel.TvgName == "" {
-				xepgChannel.TvgName = xepgChannel.Name
-			}
 
 			if channelID == xepgChannel.XChannelID {
 

@@ -1546,18 +1546,16 @@ function openPopUp(dataType, element) {
             // XMLTV Mapping
             var dbKey = "x-mapping";
             var xmltv = new XMLTVFile();
-            const currentXmlTvId = data[dbKey];
-            const [xmlTvIdContainer, xmlTvIdInput, xmlTvIdDatalist] = xmltv.newXmlTvIdPicker(xmlFile, currentXmlTvId);
-            xmlTvIdContainer.setAttribute('id', 'xmltv-id-picker-container');
-            xmlTvIdInput.setAttribute('list', 'xmltv-id-picker-datalist');
-            xmlTvIdInput.setAttribute('name', 'x-mapping'); // Should stay x-mapping as it will be used in donePopupData to make a server request
-            xmlTvIdInput.setAttribute('id', 'xmltv-id-picker-input');
-            xmlTvIdInput.setAttribute('onchange', `javascript: this.className = 'changed'; checkXmltvChannel('${id}', this, '${xmlFile}');`);
-            xmlTvIdDatalist.setAttribute('id', 'xmltv-id-picker-datalist');
-            // sortSelect(xmlTvIdDatalist); // TODO: Better sort before adding
-            content.appendRow('{{.mapping.xmltvChannel.title}}', xmlTvIdContainer);
+            var select = xmltv.getPrograms(file, data[dbKey], false);
+            var mappingType = data[dbKey];
+            console.log("CHECKING: " + mappingType);
+            select.setAttribute("name", dbKey);
+            select.setAttribute("id", "popup-mapping");
+            select.setAttribute("onchange", "javascript: this.className = 'changed'; checkXmltvChannel('" + id + "',this,'" + xmlFile + "');");
+            sortSelect(select);
+            content.appendRow("{{.mapping.xmltvChannel.title}}", select);
             // Extra PPV Data
-            if (currentXmlTvId == "PPV") {
+            if (mappingType == "PPV") {
                 var dbKey = "x-ppv-extra";
                 var input = content.createInput("text", dbKey, data[dbKey]);
                 input.setAttribute("onchange", "javascript: this.className = 'changed'");
@@ -1566,38 +1564,25 @@ function openPopUp(dataType, element) {
             }
             var dbKey = "x-backup-channel-1";
             var xmltv = new XMLTVFile();
-            const backup1XmlTvId = data[dbKey];
-            const [xmlTvBackup1IdContainer, xmlTvBackup1IdInput, xmlTvBackup1IdDatalist] = xmltv.newXmlTvIdPicker(xmlFile, backup1XmlTvId);
-            xmlTvBackup1IdContainer.setAttribute('id', 'xmltv-id-picker-container-1');
-            xmlTvBackup1IdInput.setAttribute('list', 'xmltv-id-picker-datalist');
-            xmlTvBackup1IdInput.setAttribute('name', dbKey); // Should stay x-mapping as it will be used in donePopupData to make a server request
-            xmlTvBackup1IdInput.setAttribute("id", "backup-channel-1");
-            xmlTvBackup1IdInput.setAttribute('onchange', `javascript: this.className = 'changed'; checkXmltvChannel('${id}', this, '${xmlFile}');`);
-            xmlTvBackup1IdDatalist.setAttribute('id', 'xmltv-id-picker-datalist-backup1');
-            // sortSelect(xmlTvIdDatalist); // TODO: Better sort before adding
-            content.appendRow('{{.mapping.backupChannel1.title}}', xmlTvBackup1IdContainer);
+            var select = xmltv.getPrograms(file, data[dbKey], true);
+            select.setAttribute("name", dbKey);
+            select.setAttribute("id", "backup-channel-1");
+            select.setAttribute("onchange", "javascript: this.className = 'changed'; checkXmltvChannel('" + id + "',this,'" + xmlFile + "');");
+            content.appendRow("{{.mapping.backupChannel1.title}}", select);
             var dbKey = "x-backup-channel-2";
             var xmltv = new XMLTVFile();
-            const backup2XmlTvId = data[dbKey];
-            const [xmlTvBackup2IdContainer, xmlTvBackup2IdInput, xmlTvBackup2IdDatalist] = xmltv.newXmlTvIdPicker(xmlFile, backup2XmlTvId);
-            xmlTvBackup2IdContainer.setAttribute('id', 'xmltv-id-picker-container-2');
-            xmlTvBackup2IdInput.setAttribute('list', 'xmltv-id-picker-datalist');
-            xmlTvBackup2IdInput.setAttribute('name', dbKey); // Should stay x-mapping as it will be used in donePopupData to make a server request
-            xmlTvBackup2IdInput.setAttribute("id", "backup-channel-2");
-            xmlTvBackup2IdInput.setAttribute('onchange', `javascript: this.className = 'changed'; checkXmltvChannel('${id}', this, '${xmlFile}');`);
-            xmlTvBackup2IdDatalist.setAttribute('id', 'xmltv-id-picker-datalist-backup2');
-            content.appendRow("{{.mapping.backupChannel2.title}}", xmlTvBackup2IdContainer);
+            var select = xmltv.getPrograms(file, data[dbKey], true);
+            select.setAttribute("name", dbKey);
+            select.setAttribute("id", "backup-channel-2");
+            select.setAttribute("onchange", "javascript: this.className = 'changed'; checkXmltvChannel('" + id + "',this,'" + xmlFile + "');");
+            content.appendRow("{{.mapping.backupChannel2.title}}", select);
             var dbKey = "x-backup-channel-3";
             var xmltv = new XMLTVFile();
-            const backup3XmlTvId = data[dbKey];
-            const [xmlTvBackup3IdContainer, xmlTvBackup3IdInput, xmlTvBackup3IdDatalist] = xmltv.newXmlTvIdPicker(xmlFile, backup2XmlTvId);
-            xmlTvBackup3IdContainer.setAttribute('id', 'xmltv-id-picker-container-3');
-            xmlTvBackup3IdInput.setAttribute('list', 'xmltv-id-picker-datalist');
-            xmlTvBackup3IdInput.setAttribute('name', dbKey); // Should stay x-mapping as it will be used in donePopupData to make a server request
-            xmlTvBackup3IdInput.setAttribute("id", "backup-channel-3");
-            xmlTvBackup3IdInput.setAttribute('onchange', `javascript: this.className = 'changed'; checkXmltvChannel('${id}', this, '${xmlFile}');`);
-            xmlTvBackup3IdDatalist.setAttribute('id', 'xmltv-id-picker-datalist-backup3');
-            content.appendRow("{{.mapping.backupChannel3.title}}", xmlTvBackup3IdContainer);
+            var select = xmltv.getPrograms(file, data[dbKey], true);
+            select.setAttribute("name", dbKey);
+            select.setAttribute("id", "backup-channel-3");
+            select.setAttribute("onchange", "javascript: this.className = 'changed'; checkXmltvChannel('" + id + "',this,'" + xmlFile + "');");
+            content.appendRow("{{.mapping.backupChannel3.title}}", select);
             // Interaktion
             content.createInteraction();
             // Logo hochladen
@@ -1782,25 +1767,20 @@ function getValueFromProviderFile(file, fileType, key) {
     }
     return;
 }
-function setXmltvChannel(epgMapId, xmlTvFileSelect) {
-    const xmlTv = new XMLTVFile();
-    const newXmlTvFile = xmlTvFileSelect.value;
-    // Remove old XMLTV ID selection box
-    const xmlTvIdPickerParent = document.getElementById('xmltv-id-picker-container').parentElement;
-    xmlTvIdPickerParent.innerHTML = '';
-    // Create new XMLTV ID selection box
-    const tvgId = SERVER['xepg']['epgMapping'][epgMapId]['tvg-id'];
-    const [xmlTvIdContainer, xmlTvIdInput, xmlTvIdDatalist] = xmlTv.newXmlTvIdPicker(newXmlTvFile, tvgId);
-    xmlTvIdContainer.setAttribute('id', 'xmltv-id-picker-container');
-    xmlTvIdInput.setAttribute('list', 'xmltv-id-picker-datalist');
-    xmlTvIdInput.setAttribute('name', 'x-mapping'); // Should stay x-mapping as it will be used in donePopupData to make a server request
-    xmlTvIdInput.setAttribute('id', 'xmltv-id-picker-input');
-    xmlTvIdInput.setAttribute('onchange', `javascript: this.className = 'changed'; checkXmltvChannel('${epgMapId}', this.value, '${newXmlTvFile}');`);
-    xmlTvIdInput.classList.add('changed');
-    xmlTvIdDatalist.setAttribute('id', 'xmltv-id-picker-datalist');
-    // Add new XMLTV ID selection box to it's parent
-    xmlTvIdPickerParent.appendChild(xmlTvIdContainer);
-    checkXmltvChannel(epgMapId, xmlTvIdInput.value, newXmlTvFile);
+function setXmltvChannel(id, element, dummy_type) {
+    var xmltv = new XMLTVFile();
+    var xmlFile = element.value;
+    var tvgId = SERVER["xepg"]["epgMapping"][id]["tvg-id"];
+    var td = document.getElementById("popup-mapping").parentElement;
+    td.innerHTML = "";
+    var select = xmltv.getPrograms(element.value, tvgId, false);
+    select.setAttribute("name", "x-mapping");
+    select.setAttribute("id", "popup-mapping");
+    select.setAttribute("onchange", "javascript: this.className = 'changed'; checkXmltvChannel('" + id + "',this,'" + xmlFile + "');");
+    select.className = "changed";
+    sortSelect(select);
+    td.appendChild(select);
+    checkXmltvChannel(id, select, xmlFile);
 }
 function checkPPV(title, element) {
     var value = element.value;
@@ -1860,20 +1840,26 @@ function checkXmltvChannel(id, element, xmlFile) {
     }
     return;
 }
-function changeChannelLogo(epgMapId) {
-    const channel = SERVER['xepg']['epgMapping'][epgMapId];
-    const xmlTvFileSelect = document.getElementById('popup-xmltv');
-    const xmlTvFile = xmlTvFileSelect.options[xmlTvFileSelect.selectedIndex].value;
-    const xmlTvIdInput = document.getElementById('xmltv-id-picker-input');
-    const newXmlTvId = xmlTvIdInput.value;
-    const updateLogo = !BULK_EDIT || document.getElementById('update-icon').checked;
-    let logo;
-    if (updateLogo == true && xmlTvFile != 'Threadfin Dummy') {
-        if (SERVER['xepg']['xmltvMap'][xmlTvFile].hasOwnProperty(newXmlTvId)) {
-            logo = SERVER['xepg']['xmltvMap'][xmlTvFile][newXmlTvId]['icon'];
+function changeChannelLogo(id) {
+    var updateLogo;
+    var channel = SERVER["xepg"]["epgMapping"][id];
+    var f = document.getElementById("popup-xmltv");
+    var xmltvFile = f.options[f.selectedIndex].value;
+    var m = document.getElementById("popup-mapping");
+    var xMapping = m.options[m.selectedIndex].value;
+    var xmltvLogo = SERVER["xepg"]["xmltvMap"][xmltvFile][xMapping]["icon"];
+    updateLogo = document.getElementById("update-icon").checked;
+    if (updateLogo == true && xmltvFile != "Threadfin Dummy") {
+        if (SERVER["xepg"]["xmltvMap"][xmltvFile].hasOwnProperty(xMapping)) {
+            var logo = xmltvLogo;
         }
         else {
-            logo = channel['tvg-logo'];
+            logo = channel["tvg-logo"];
+        }
+        var logoInput = document.getElementById("channel-icon");
+        logoInput.value = logo;
+        if (BULK_EDIT == false) {
+            logoInput.className = "changed";
         }
     }
 }

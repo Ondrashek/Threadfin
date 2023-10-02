@@ -151,10 +151,6 @@ function getObjKeys(obj) {
   return keys;
 }
 
-function getOwnObjProps(object: Object): string[] {
-  return object ? Object.getOwnPropertyNames(object) : []
-}
-
 function getAllSelectedChannels(): string[] {
 
   var channels: string[] = new Array()

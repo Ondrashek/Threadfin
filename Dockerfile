@@ -1,9 +1,9 @@
 # First stage. Building a binary
 # -----------------------------------------------------------------------------
-FROM golang:1.18 AS builder
+FROM golang:1.18-alpine AS builder
 
 # Download the source code
-RUN apt-get update && apt-get install -y git
+RUN apk add --no-cache git
 RUN git clone https://github.com/Ondrashek/Threadfin.git /src
 
 WORKDIR /src
@@ -15,8 +15,9 @@ RUN go build threadfin.go
 
 # Second stage. Creating an image
 # -----------------------------------------------------------------------------
-ARG USE_NVIDIA=0
-FROM ${USE_NVIDIA:+nvidia/cuda:12.1.1-base-ubuntu22.04}${USE_NVIDIA:-ubuntu:22.04}
+#ARG USE_NVIDIA=0
+#FROM ${USE_NVIDIA:+nvidia/cuda:12.1.1-base-ubuntu22.04}${USE_NVIDIA:-ubuntu:22.04}
+FROM alpine:latest
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -26,7 +27,7 @@ ARG THREADFIN_VERSION
 LABEL org.label-schema.build-date="{$BUILD_DATE}" \
       org.label-schema.name="Threadfin" \
       org.label-schema.description="Dockerized Threadfin" \
-      org.label-schema.url="https://hub.docker.com/r/fyb3roptik/threadfin/" \
+      org.label-schema.url="https://hub.docker.com/r/ondrashekz/threadfin/" \
       org.label-schema.vcs-ref="{$VCS_REF}" \
       org.label-schema.vcs-url="https://github.com/Threadfin/Threadfin" \
       org.label-schema.vendor="Threadfin" \
@@ -53,12 +54,18 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$THREADFIN
 # Set working directory
 WORKDIR $THREADFIN_HOME
 
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y ca-certificates curl ffmpeg vlc
+RUN apk update
+RUN apk upgrade
+RUN apk add --no-cache ca-certificates
+RUN apk add curl
+RUN apk add ffmpeg
+RUN apk add vlc
 
-RUN DEBIAN_FRONTEND=noninteractive TZ="America/New_York" apt-get -y install tzdata
+RUN apk update && apk add --no-cache tzdata
+ENV TZ=America/New_York
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN mkdir -p $THREADFIN_BIN
+RUN mkdir $THREADFIN_BIN
 
 # Copy built binary from builder image
 COPY --chown=${THREADFIN_UID} --from=builder [ "/src/threadfin", "${THREADFIN_BIN}/" ]
@@ -72,9 +79,9 @@ RUN mkdir $THREADFIN_CONF
 RUN chmod a+rwX $THREADFIN_CONF
 RUN mkdir $THREADFIN_TEMP
 RUN chmod a+rwX $THREADFIN_TEMP
-
-# For VLC
 RUN sed -i 's/geteuid/getppid/' /usr/bin/vlc
+
+RUN mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
 
 # Configure container volume mappings
 VOLUME $THREADFIN_CONF

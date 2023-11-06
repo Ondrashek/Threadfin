@@ -36,7 +36,12 @@ func MakeInterfaceFromM3U(byteStream []byte) (allChannels []interface{}, err err
 				switch err {
 
 				case nil:
-					stream["url"] = strings.Trim(line, "\r\n")
+					//stream["url"] = strings.Trim(line, "\r\n")
+                    re := regexp.MustCompile(`(www|http:|https:)+[^\s]+[\w]`)
+                    submatchall := re.FindAllString(line,-1)
+	                for _, element := range submatchall {
+		              stream["url"] = element;
+	                }                    
 
 				default:
 					var value string

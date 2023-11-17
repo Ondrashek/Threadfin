@@ -471,10 +471,10 @@ func createXEPGDatabase() (err error) {
 			}
 
 			// Streaming URL aktualisieren
-			xepgChannel.URL = m3uChannel.URL
+			//xepgChannel.URL = m3uChannel.URL
 
 			// Name aktualisieren, anhand des Names wird überprüft ob der Kanal noch in einer Playlist verhanden. Funktion: cleanupXEPG
-			xepgChannel.Name = m3uChannel.Name
+			//xepgChannel.Name = m3uChannel.Name
 
 			// Kanalname aktualisieren, nur mit Kanal ID's möglich
 			if channelHasUUID == true {

@@ -519,11 +519,11 @@ func createXEPGDatabase() (err error) {
 			newChannel.FileM3UPath = m3uChannel.FileM3UPath
 			newChannel.Values = m3uChannel.Values
 			newChannel.GroupTitle = m3uChannel.GroupTitle
-			newChannel.Name = m3uChannel.Name
+			//newChannel.Name = m3uChannel.Name
 			newChannel.TvgID = m3uChannel.TvgID
 			newChannel.TvgLogo = m3uChannel.TvgLogo
 			newChannel.TvgName = m3uChannel.TvgName
-			newChannel.URL = m3uChannel.URL
+			//newChannel.URL = m3uChannel.URL
 			newChannel.XmltvFile = ""
 			newChannel.XMapping = ""
 

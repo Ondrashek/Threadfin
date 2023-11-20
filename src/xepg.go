@@ -394,7 +394,7 @@ func createXEPGDatabase() (err error) {
 		if err != nil {
 			return
 		}
-		channelHash := generateHashForChannel(channel.FileM3UID, channel.GroupTitle, channel.TvgID, channel.TvgName, channel.UUIDKey, channel.UUIDValue)
+		channelHash := generateHashForChannel(channel.FileM3UID, channel.GroupTitle, channel.TvgID, channel.Name, channel.UUIDKey, channel.UUIDValue)
 		xepgChannelsValuesMap[channelHash] = channel
 	}
 
@@ -416,7 +416,7 @@ func createXEPGDatabase() (err error) {
 		Data.Cache.Streams.Active = append(Data.Cache.Streams.Active, m3uChannel.Name+m3uChannel.FileM3UID)
 
 		// Try to find the channel based on matching all known values.  If that fails, then move to full channel scan
-		m3uChannelHash := generateHashForChannel(m3uChannel.FileM3UID, m3uChannel.GroupTitle, m3uChannel.TvgID, m3uChannel.TvgName, m3uChannel.UUIDKey, m3uChannel.UUIDValue)
+		m3uChannelHash := generateHashForChannel(m3uChannel.FileM3UID, m3uChannel.GroupTitle, m3uChannel.TvgID, m3uChannel.Name, m3uChannel.UUIDKey, m3uChannel.UUIDValue)
 		if val, ok := xepgChannelsValuesMap[m3uChannelHash]; ok {
 			channelExists = true
 			currentXEPGID = val.XEPG
@@ -471,10 +471,10 @@ func createXEPGDatabase() (err error) {
 			}
 
 			// Streaming URL aktualisieren
-			//xepgChannel.URL = m3uChannel.URL
+			xepgChannel.URL = m3uChannel.URL
 
 			// Name aktualisieren, anhand des Names wird überprüft ob der Kanal noch in einer Playlist verhanden. Funktion: cleanupXEPG
-			//xepgChannel.Name = m3uChannel.Name
+			xepgChannel.Name = m3uChannel.Name
 
 			// Kanalname aktualisieren, nur mit Kanal ID's möglich
 			if channelHasUUID == true {
@@ -519,11 +519,11 @@ func createXEPGDatabase() (err error) {
 			newChannel.FileM3UPath = m3uChannel.FileM3UPath
 			newChannel.Values = m3uChannel.Values
 			newChannel.GroupTitle = m3uChannel.GroupTitle
-			//newChannel.Name = m3uChannel.Name
+			newChannel.Name = m3uChannel.Name
 			newChannel.TvgID = m3uChannel.TvgID
 			newChannel.TvgLogo = m3uChannel.TvgLogo
 			newChannel.TvgName = m3uChannel.TvgName
-			//newChannel.URL = m3uChannel.URL
+			newChannel.URL = m3uChannel.URL
 			newChannel.XmltvFile = ""
 			newChannel.XMapping = ""
 
@@ -782,12 +782,12 @@ func createXMLTVFile() (err error) {
 		err := json.Unmarshal([]byte(mapToJSON(dxc)), &xepgChannel)
 		if err == nil {
 			if xepgChannel.XActive && !xepgChannel.XHideChannel {
-				if (Settings.XepgReplaceChannelTitle && xepgChannel.XMapping == "PPV") || xepgChannel.TvgName != "" {
+				if (Settings.XepgReplaceChannelTitle && xepgChannel.XMapping == "PPV") || xepgChannel.XName != "" {
 					// Kanäle
 					var channel Channel
 					channel.ID = xepgChannel.XChannelID
 					channel.Icon = Icon{Src: imgc.Image.GetURL(xepgChannel.TvgLogo, Settings.HttpThreadfinDomain, Settings.ForceHttps, Settings.HttpsPort, Settings.HttpsThreadfinDomain)}
-					channel.DisplayName = append(channel.DisplayName, DisplayName{Value: xepgChannel.TvgName})
+					channel.DisplayName = append(channel.DisplayName, DisplayName{Value: xepgChannel.XName})
 					channel.Active = xepgChannel.XActive
 					xepgXML.Channel = append(xepgXML.Channel, &channel)
 				}
@@ -1225,8 +1225,6 @@ func getStreamByChannelID(channelID string) (playlistID, streamURL string, err e
 
 		var xepgChannel XEPGChannelStruct
 		err := json.Unmarshal([]byte(mapToJSON(dxc)), &xepgChannel)
-
-		fmt.Println(xepgChannel.XChannelID)
 
 		if err == nil {
 
